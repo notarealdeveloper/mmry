@@ -15,7 +15,7 @@ class CacheSha1:
 
     @staticmethod
     def default_root():
-        return os.path.join(os.getenv('HOME'), '.cache', 'memory')
+        return os.path.join(os.getenv('HOME'), '.cache', 'mmry')
 
     @staticmethod
     def default_name():

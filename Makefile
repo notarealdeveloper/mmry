@@ -1,4 +1,4 @@
-PKG = memory
+PKG = mmry
 
 build:
 	pip install build

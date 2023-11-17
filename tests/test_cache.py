@@ -1,12 +1,12 @@
 import pytest
-import memory
+from mmry import CacheDefault
 
 def foo(s):
     return s.replace('hello', 'goodbye')
 
 def test_cache():
 
-    cache = memory.CacheDefault('test')
+    cache = CacheDefault('test')
 
     s = 'hello, world'
 
