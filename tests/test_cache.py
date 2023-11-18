@@ -1,12 +1,12 @@
 import pytest
-from mmry import CacheDefault
+from mmry import Cache
 
 def foo(s):
     return s.replace('hello', 'goodbye')
 
 def test_cache():
 
-    cache = CacheDefault('test')
+    cache = Cache('test')
 
     s = 'hello, world'
 

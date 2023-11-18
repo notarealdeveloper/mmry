@@ -1,13 +1,12 @@
 __all__ = [
-    'CacheDefault',
+    'Cache',
     'CacheSha1',
 ]
 
 import os
+import assure
 import hashlib
 from functools import lru_cache
-
-import assure
 
 class CacheSha1:
 
@@ -24,6 +23,10 @@ class CacheSha1:
     def __init__(self, name=None, *, root=None):
         self.root = root or self.default_root()
         self.name = name or self.default_name()
+
+    def namespace(self, name=None):
+        if name: self.name = name
+        else:    return self.name        
 
     @property
     def blobs(self):
@@ -77,4 +80,5 @@ class CacheSha1:
             raise TypeError(f"blob has type {blob.__class__.__name__!r}")
         return hashlib.sha1(blob).hexdigest()
 
-CacheDefault = CacheSha1
+# Default
+Cache = CacheSha1
