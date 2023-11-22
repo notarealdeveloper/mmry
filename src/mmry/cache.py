@@ -1,6 +1,5 @@
 __all__ = [
     'Cache',
-    'CacheSha1',
 ]
 
 import os
@@ -8,7 +7,7 @@ import assure
 import hashlib
 from functools import lru_cache
 
-class CacheSha1:
+class Cache:
 
     """ Content addressable memory, inspired by git. """
 
@@ -29,72 +28,116 @@ class CacheSha1:
         else:    return self.name        
 
     @property
-    def blobs(self):
-        return os.path.join(self.root, self.name, 'blobs')
+    def path(self):
+        return os.path.join(self.root, self.name)
 
     @property
-    def trees(self):
-        return os.path.join(self.root, self.name, 'trees')
+    def blobs(self):
+        return os.path.join(self.path, 'blobs')
 
-    def have(self, blob):
-        return os.path.exists(self.path(blob))
+    @property
+    def names(self):
+        return os.path.join(self.path, 'names')
 
-    def path(self, blob):
-        return os.path.join(self.blobs, self.hash(blob))
+    def rmtree(self, confirm=False):
+        self.check_path(self.root)
+        self.check_path(self.path)
+        if confirm:
+            import shutil
+            try:    shutil.rmtree(self.path)
+            except: pass
+        else:
+            print(f"skipping: shutil.rmtree({self.path})")
 
-    def check_name(self, name):
-        if '/' in name:
-            raise ValueError(f"name cannot contain '/'")
+    #############
+    ### paths ###
+    #############
 
-    def have_name(self, name):
-        self.check_name(name)
-        dst = self.full_name(name)
-        return os.path.exists(dst)
-
-    def full_name(self, name):
-        return os.path.join(self.trees, name)
-
-    def save_name(self, name, blob):
-        self.check_name(name)
-        dst = self.full_name(name)
-        src = self.path(blob)
-        os.symlink(src, dst)
-
-    def load_name(self, name) -> bytes:
-        self.check_name(name)
-        path = self.full_name(name)
-        return self.load_path(path)
-
-    def delete_name(self, name):
-        self.check_name(name)
-        path = self.full_name(name)
-        return self.delete_path(name)
-
-    def save(self, blob, bytes):
-        path = self.path(blob)
+    def save_path(self, path, bytes):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, 'wb') as fp:
-            fp.write(assure.bytes(bytes))
-
-    def load(self, blob) -> bytes:
-        path = self.path(blob)
-        return self.load_path(path)
+            return fp.write(assure.bytes(bytes))
 
     def load_path(self, path):
         with open(path, 'rb') as fp:
             return assure.bytes(fp.read())
 
-    def delete(self, blob):
-        path = self.path(blob)
+    def delete_path(self, path):
+        try:    os.remove(path)
+        except: return False
+        else:   return True
+
+    def have_path(self, path):
+        return os.path.exists(path)
+
+    def check_path(self, path):
+        if not path.startswith(self.root):
+            raise ValueError(f"Bad path: {path}")
+        return True
+
+    #############
+    ### blobs ###
+    #############
+
+    def blob_path(self, blob):
+        path = os.path.join(self.blobs, self.hash(blob))
+        self.check_path(path)
+        return path
+
+    def have_blob(self, blob):
+        path = self.blob_path(blob)
+        return self.have_path(path)
+
+    def save_blob(self, blob, bytes):
+        path = self.blob_path(blob)
+        return self.save_path(path, bytes)
+
+    def load_blob(self, blob) -> bytes:
+        path = self.blob_path(blob)
+        return self.load_path(path)
+
+    def delete_blob(self, blob):
+        path = self.blob_path(blob)
         return self.delete_path(path)
 
-    def delete_path(self, path):
-        try:
-            os.remove(path)
-        except:
-            return False
-        else:
-            return True
+    #############
+    ### names ###
+    #############
+
+    def check_name(self, name):
+        if '/' in name:
+            raise ValueError(f"name cannot contain '/'")
+        return name
+
+    def name_path(self, name):
+        path = os.path.join(self.names, name)
+        self.check_name(name)
+        return path
+
+    def have_name(self, name):
+        path = self.name_path(name)
+        return self.have_path(path)
+
+    def save_name(self, name, blob):
+        os.makedirs(self.names, exist_ok=True)
+        src = self.name_path(name)
+        dst = self.blob_path(blob)
+        if self.have_path(src):
+            # assert dst == os.readlink(src)
+            self.delete_name(name)
+        os.symlink(dst, src)
+
+    def load_name(self, name) -> bytes:
+        path = self.name_path(name)
+        return self.load_path(path)
+
+    def delete_name(self, name):
+        path = self.name_path(name)
+        return self.delete_path(path)
+
+    #################
+    ### internals ###
+    #################
 
     def hash(self, blob):
         return self.hash_bytes(self.ensure_bytes(blob))
@@ -114,5 +157,3 @@ class CacheSha1:
             raise TypeError(f"blob has type {blob.__class__.__name__!r}")
         return hashlib.sha1(blob).hexdigest()
 
-# Default
-Cache = CacheSha1
