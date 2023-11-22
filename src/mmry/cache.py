@@ -42,6 +42,34 @@ class CacheSha1:
     def path(self, blob):
         return os.path.join(self.blobs, self.hash(blob))
 
+    def check_name(self, name):
+        if '/' in name:
+            raise ValueError(f"name cannot contain '/'")
+
+    def have_name(self, name):
+        self.check_name(name)
+        dst = self.full_name(name)
+        return os.path.exists(dst)
+
+    def full_name(self, name):
+        return os.path.join(self.trees, name)
+
+    def save_name(self, name, blob):
+        self.check_name(name)
+        dst = self.full_name(name)
+        src = self.path(blob)
+        os.symlink(src, dst)
+
+    def load_name(self, name) -> bytes:
+        self.check_name(name)
+        path = self.full_name(name)
+        return self.load_path(path)
+
+    def delete_name(self, name):
+        self.check_name(name)
+        path = self.full_name(name)
+        return self.delete_path(name)
+
     def save(self, blob, bytes):
         path = self.path(blob)
         os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -50,11 +78,17 @@ class CacheSha1:
 
     def load(self, blob) -> bytes:
         path = self.path(blob)
+        return self.load_path(path)
+
+    def load_path(self, path):
         with open(path, 'rb') as fp:
             return assure.bytes(fp.read())
 
     def delete(self, blob):
         path = self.path(blob)
+        return self.delete_path(path)
+
+    def delete_path(self, path):
         try:
             os.remove(path)
         except:
