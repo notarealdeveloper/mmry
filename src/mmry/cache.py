@@ -13,6 +13,10 @@ class Cache:
 
     @staticmethod
     def default_root():
+        # prioritize environment variable if user has set it
+        if (root := os.getenv('MMRY_CACHE_ROOT')):
+            return root
+        # otherwise, use the canonical location in $HOME
         return os.path.join(os.getenv('HOME'), '.cache', 'mmry')
 
     @staticmethod
