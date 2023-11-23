@@ -7,6 +7,7 @@ import assure
 import hashlib
 from functools import lru_cache
 
+
 class Cache:
 
     """ Content addressable memory, inspired by git. """
@@ -58,9 +59,10 @@ class Cache:
     #############
 
     def save_path(self, path, bytes):
-        self._makedirs(os.path.dirname(path))
-        with open(path, 'wb') as fp:
-            return fp.write(assure.bytes(bytes))
+        with umask():
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, 'wb') as fp:
+                return fp.write(assure.bytes(bytes))
 
     def load_path(self, path):
         with open(path, 'rb') as fp:
@@ -123,7 +125,8 @@ class Cache:
         return self.have_path(path)
 
     def save_name(self, name, blob):
-        self._makedirs(self.names)
+        with umask():
+            os.makedirs(self.names, exist_ok=True)
         src = self.name_path(name)
         dst = self.blob_path(blob)
         if self.have_path(src):
@@ -143,11 +146,6 @@ class Cache:
     ### internals ###
     #################
 
-    def _makedirs(self, path):
-        mask = os.umask(0o002) # group writeable, but not world
-        os.makedirs(path, exist_ok=True)
-        os.umask(mask) # reset umask
-
     def hash(self, blob):
         return self.hash_bytes(self.ensure_bytes(blob))
 
@@ -166,3 +164,13 @@ class Cache:
             raise TypeError(f"blob has type {blob.__class__.__name__!r}")
         return hashlib.sha1(blob).hexdigest()
 
+
+MASK = 0o002 # group writeable, but not world
+
+class umask:
+    def __init__(self, mask=MASK):
+        self.new = mask
+    def __enter__(self):
+        self.old = os.umask(self.new)
+    def __exit__(self, *args):
+        os.umask(self.old)
