@@ -58,7 +58,7 @@ class Cache:
     #############
 
     def save_path(self, path, bytes):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        self._makedirs(os.path.dirname(path))
         with open(path, 'wb') as fp:
             return fp.write(assure.bytes(bytes))
 
@@ -123,7 +123,7 @@ class Cache:
         return self.have_path(path)
 
     def save_name(self, name, blob):
-        os.makedirs(self.names, exist_ok=True)
+        self._makedirs(self.names)
         src = self.name_path(name)
         dst = self.blob_path(blob)
         if self.have_path(src):
@@ -142,6 +142,11 @@ class Cache:
     #################
     ### internals ###
     #################
+
+    def _makedirs(self, path):
+        mask = os.umask(0o002) # group writeable, but not world
+        os.makedirs(path, exist_ok=True)
+        os.umask(mask) # reset umask
 
     def hash(self, blob):
         return self.hash_bytes(self.ensure_bytes(blob))
