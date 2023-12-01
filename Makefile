@@ -1,7 +1,6 @@
 PKG = mmry
 
-build:
-	pip install build
+build: build-deps
 	python -m build
 
 install: build
@@ -34,3 +33,5 @@ push-prod:
 pull-prod:
 	pip install $(PKG)
 
+build-deps:
+	@python -c 'import build' &>/dev/null || pip install build
