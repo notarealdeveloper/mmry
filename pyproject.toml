@@ -7,7 +7,7 @@ authors = [
 ]
 description = "Unix disk cache for software 2.0"
 dependencies = [
-    "assure",
+    "assure>=0.0.6",
 ]
 
 [project.urls]
