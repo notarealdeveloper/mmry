@@ -1,11 +1,13 @@
 [project]
 name = "mmry"
-version = "0.0.5"
+version = "0.0.6"
 authors = [
     { name="Jason Wilkes", email="notarealdeveloper@gmail.com" },
 ]
 description = "Unix disk cache for software 2.0"
-dependencies = []
+dependencies = [
+    "assure",
+]
 
 [project.urls]
 source = "https://github.com/notarealdeveloper/mmry"
