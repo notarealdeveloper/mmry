@@ -3,7 +3,6 @@ __all__ = [
 ]
 
 import os
-import assure
 import hashlib
 from functools import lru_cache
 
@@ -62,11 +61,11 @@ class Cache:
         with umask():
             os.makedirs(os.path.dirname(path), mode=MODE, exist_ok=True)
             with open(path, 'wb') as fp:
-                return fp.write(assure.bytes(bytes))
+                return fp.write(self.ensure_bytes(bytes))
 
     def load_path(self, path):
         with open(path, 'rb') as fp:
-            return assure.bytes(fp.read())
+            return self.ensure_bytes(fp.read())
 
     def delete_path(self, path):
         try:    os.remove(path)

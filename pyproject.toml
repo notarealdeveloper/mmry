@@ -1,13 +1,12 @@
 [project]
 name = "mmry"
-version = "0.0.7"
+version = "0.0.8"
 authors = [
     { name="Jason Wilkes", email="notarealdeveloper@gmail.com" },
     { name="Ramya Kottapalli", email="rskottap@gmail.com" },
 ]
 description = "Unix disk cache for software 2.0"
 dependencies = [
-    "assure>=0.0.6",
 ]
 
 [project.urls]
