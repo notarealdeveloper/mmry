@@ -4,6 +4,7 @@ __all__ = [
 
 import os
 import hashlib
+import platform
 from functools import lru_cache
 
 
@@ -17,6 +18,8 @@ class Cache:
         if (root := os.getenv('MMRY_CACHE_ROOT')):
             return root
         # otherwise, use the canonical location in $HOME
+        if platform.system() == "Windows":
+            return os.path.join(os.getenv('USERPROFILE'), '.cache', 'mmry')
         return os.path.join(os.getenv('HOME'), '.cache', 'mmry')
 
     @staticmethod
